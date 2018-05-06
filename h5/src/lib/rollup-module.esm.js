@@ -1,186 +1,113 @@
-const QualityChange = {
-  qualityStringList: ['low', 'normal', 'high'],
-  isQualityString: s => QualityChange.qualityStringList.indexOf(s) !== -1,
-  stoi: s => {
-    let index = QualityChange.qualityStringList.indexOf(s);
-    const length = QualityChange.qualityStringList.length;
-    if (index === -1) index = length - 1;
-    return 100 * (1 + index) / length - 0.1;
-    // 0~100和'high'互相转换的规则: low: 33.23, normal: 66.56, high: 99.9
-  },
-  itos: i => {
-    // 0~33为low， 33~66为normal，66~100为high
-    const length = QualityChange.qualityStringList.length;
-    // console.log('i=', i);
-    let index = Math.floor(i / 100.0 * length);
-    // console.log('index=', index);
-    if (index >= length || index < 0) index = QualityChange.qualityStringList.length - 1;
-    return QualityChange.qualityStringList[index];
-  }
+const createInitData = () => {
+  const initData = {
+    local: {
+      players: [0]
+    },
+    rule: {
+      playerOrder: [0, 1],
+      map: {
+        width: 9,
+        height: 9
+      },
+      playerWallCount: 10
+    },
+    state: {
+      nowPlayer: 0,
+      round: 0,
+      players: [{
+        id: 0,
+        x: 8,
+        y: 4,
+        wallCount: 9
+      }, {
+        id: 1,
+        x: 0,
+        y: 4,
+        wallCount: 10
+      }],
+      walls: [{
+        round: -1,
+        player: 0,
+        st: {
+          x: 4,
+          y: 4
+        },
+        ed: {
+          x: 4,
+          y: 6
+        }
+      }]
+    }
+  };
+  return initData;
 };
 
-class CameraHolder {
+const getAccessableBlockList = (preX, preY, width, height, stepCount) => {
+  const ret = [];
+  if (stepCount === 0) return ret;
+  const go = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+  go.forEach(({ x: gx, y: gy }) => {
+    const x = preX + gx;
+    const y = preY + gy;
+    if (x >= 0 && x < height && y >= 0 && y < width) {
+      if (stepCount === 1) ret.push({ x, y });else {
+        const newBlock = getAccessableBlockList(x, y, width, height, stepCount);
+        // TODO: 去重然后concat进ret列表。
+      }
+    }
+  });
+  return ret;
+};
+
+function getNextPlayer(player, playerOrder) {
+  let index = playerOrder.indexOf(player);
+  index += 1;
+  if (index >= playerOrder.length) index = 0;
+  return playerOrder[index];
+}
+
+class GameControl {
   constructor() {
-    this.photoQuality = 92;
+    this.init();
   }
 
   init() {
-    return Promise.reject('init not impl');
-  }
-
-  // 接受0~100数字或者low、normal、high的字符串。存储为this.photoQuality，为0~100的数字。
-  setPhotoQuality(quality) {
-    if (typeof quality === 'string' && QualityChange.isQualityString(quality)) {
-      this.photoQuality = QualityChange.stoi(quality);
-    } else if (typeof quality === 'number' && quality >= 0 && quality <= 100) {
-      this.photoQuality = quality;
-    } else {
-      throw Error(`quality must be in ${JSON.stringify(QualityChange.qualityStringList)} or 0~100 number`);
-    }
+    this.data = createInitData();
     return this;
   }
 
-  getPhotoQuality(type = 'number') {
-    if (type === 'string') {
-      return QualityChange.itos(this.photoQuality);
+  setLocalPlayers(players) {
+    this.data.local.players = players;
+    return this;
+  }
+
+  getActionList() {
+    const { nowPlayer } = this.data.state;
+    const nowPlayerState = this.data.state.players[nowPlayer];
+    const { x, y } = nowPlayerState;
+    const { width, height } = this.data.rule.map;
+    const accessBlockList = getAccessableBlockList(x, y, width, height, 1);
+    const moveActionList = accessBlockList.map(({ x: nextX, y: nextY }) => ({
+      type: 'MOVE',
+      player: nowPlayer,
+      x: nextX,
+      y: nextY
+    }));
+    const putWallActionList = []; // TODO:放墙actionList
+    return moveActionList.concat(putWallActionList);
+  }
+
+  doAction(action) {
+    if (action.type === 'MOVE') {
+      const { player, x, y } = action;
+      const thePlayerState = this.data.state.players[player];
+      thePlayerState.x = x;
+      thePlayerState.y = y;
+      this.data.state.nowPlayer = getNextPlayer(player, this.data.rule.playerOrder);
     }
-    return this.photoQuality;
-  }
-
-  getCameraDevices() {
-    return Promise.reject('getCameraDevices not impl');
-  }
-
-  selectDevice(device) {
-    return Promise.reject('selectDevice not impl');
-  }
-
-  takePhoto() {
-    return Promise.reject('takePhoto not impl');
   }
 }
 
-let wxApi = null;
-try {
-  if (typeof wx !== 'undefined') {
-    // eslint-disable-line
-    wxApi = wx; // eslint-disable-line
-  }
-} catch (e) {}
+// import WxCameraHolder from './WxCameraHolder';
 
-class WxCameraHolder extends CameraHolder {
-  constructor() {
-    super();
-    this.ctx = null;
-  }
-
-  init() {
-    this.ctx = wxApi.createCameraContext();
-    return Promise.resolve();
-  }
-
-  getCameraDevices() {
-    return [{
-      text: '前置摄像头',
-      value: 'front'
-    }, {
-      text: '后置摄像头',
-      value: 'back'
-    }];
-  }
-
-  selectDevice(device) {
-    return Promise.reject('wx selectDevice not impl');
-  }
-
-  takePhoto() {
-    return new Promise(resolve => {
-      const quality = super.getPhotoQuality('string');
-      console.log('wx takephoto, this.photoQuality=', this.photoQuality, ' quality=', quality);
-      this.ctx.takePhoto({
-        quality,
-        success: res => {
-          // this.setData({
-          //   src: res.tempImagePath
-          // });
-          resolve(res);
-        }
-      });
-    });
-  }
-}
-
-const navi = navigator;
-
-class H5CameraHolder extends CameraHolder {
-  constructor() {
-    super();
-    this.videoInput = null;
-    this.canvasInput = null;
-  }
-
-  init(videoInput, canvasInput = null) {
-    return new Promise((reslove, reject) => {
-      this.videoInput = videoInput;
-      if (canvasInput) this.canvasInput = canvasInput;
-      this.canvasInput = this.canvasInput || document.createElement('canvas');
-
-      const constraints = {
-        video: {
-          width: {
-            min: 640,
-            ideal: 400000
-          },
-          height: {
-            min: 480,
-            ideal: 300000
-          }
-        }
-      };
-      navi.mediaDevices.getUserMedia(constraints).then(stream => {
-        console.log('getUserMedia get stream:', stream);
-        this.videoInput.srcObject = stream;
-        this.videoInput.play();
-        reslove();
-      }, error => {
-        // alert(`Error! ${JSON.stringify(error)}`);
-        console.log(error);
-        reject(error);
-      });
-    });
-  }
-
-  getCameraDevices() {
-    return Promise.reject('h5 getCameraDevices not impl');
-  }
-
-  selectDevice(device) {
-    return Promise.reject('h5 selectDevice not impl');
-  }
-
-  takePhoto() {
-    const { videoInput: video, canvasInput: canvas } = this;
-    console.log('h5takePhoto', video, canvas);
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return Promise.resolve();
-  }
-}
-
-const CameraHolderFactory = {
-  createCameraHolder: () => {
-    try {
-      if (typeof wx !== 'undefined' && wx.request) // eslint-disable-line
-        {
-          return new WxCameraHolder();
-        }
-    } catch (e) {
-      console.log('createCameraHolder catch:', e);
-    }
-    return new H5CameraHolder();
-  }
-};
-
-export default CameraHolderFactory;
+export default GameControl;

@@ -1,45 +1,47 @@
-'use strict';
-
 const createInitData = () => {
   const initData = {
     local: {
-      players: [0]
+      players: [0],
     },
     rule: {
       playerOrder: [0, 1],
       map: {
         width: 9,
-        height: 9
+        height: 9,
       },
-      playerWallCount: 10
+      playerWallCount: 10,
     },
     state: {
       nowPlayer: 0,
       round: 0,
-      players: [{
-        id: 0,
-        x: 8,
-        y: 4,
-        wallCount: 9
-      }, {
-        id: 1,
-        x: 0,
-        y: 4,
-        wallCount: 10
-      }],
-      walls: [{
-        round: -1,
-        player: 0,
-        st: {
-          x: 4,
-          y: 4
+      players: [
+        {
+          id: 0,
+          x: 8,
+          y: 4,
+          wallCount: 9,
+        }, {
+          id: 1,
+          x: 0,
+          y: 4,
+          wallCount: 10,
         },
-        ed: {
-          x: 4,
-          y: 6
-        }
-      }]
-    }
+      ],
+      walls: [
+        {
+          round: -1,
+          player: 0,
+          st: {
+            x: 4,
+            y: 4,
+          },
+          ed: {
+            x: 4,
+            y: 6,
+          },
+        },
+      ],
+    },
   };
   return initData;
 };
@@ -52,7 +54,8 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount) => {
     const x = preX + gx;
     const y = preY + gy;
     if (x >= 0 && x < height && y >= 0 && y < width) {
-      if (stepCount === 1) ret.push({ x, y });else {
+      if (stepCount === 1) ret.push({ x, y });
+      else {
         const newBlock = getAccessableBlockList(x, y, width, height, stepCount);
         // TODO: 去重然后concat进ret列表。
       }
@@ -93,9 +96,9 @@ class GameControl {
       type: 'MOVE',
       player: nowPlayer,
       x: nextX,
-      y: nextY
+      y: nextY,
     }));
-    const putWallActionList = []; // TODO:放墙actionList
+    const putWallActionList = [];// TODO:放墙actionList
     return moveActionList.concat(putWallActionList);
   }
 
@@ -110,6 +113,4 @@ class GameControl {
   }
 }
 
-// import WxCameraHolder from './WxCameraHolder';
-
-module.exports = GameControl;
+export default GameControl;

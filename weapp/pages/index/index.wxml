@@ -7,6 +7,9 @@
       <text class="userinfo-nickname">{{userInfo.nickName}}</text>
     </block>
   </view>
+  <view>
+    <button type="default" bindtap="toLocal" hover-class="other-button-hover">单机定向越野模拟</button>
+  </view>
   <view class="usermotto">
     <text class="user-motto">{{motto}}</text>
   </view>

@@ -15,6 +15,12 @@ Page({
       url: '../logs/logs'
     })
   },
+  //跳到本地页面
+  toLocal: function () {
+    wx.navigateTo({
+      url: '../play/play'
+    })
+  },
   onLoad: function () {
     if (app.globalData.userInfo) {
       this.setData({

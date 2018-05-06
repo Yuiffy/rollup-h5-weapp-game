@@ -1,0 +1,5 @@
+<!--pages/play/play.wxml-->
+<text>pages/play/play.wxml</text>
+<view wx:for="{{actionList}}" wx:key="unique">
+  {{index}}: {{item.type}} {{item.x}} {{item.y}}
+</view>
