@@ -1,6 +1,7 @@
 // import WxCameraHolder from './WxCameraHolder';
 // import H5CameraHolder from './H5CameraHolder';
 import GameControl from './GameControl';
+import * as GameDrawUtil from './GameDrawUtil';
 //
 // const CameraHolderFactory = {
 //   createCameraHolder: () => {
@@ -16,4 +17,4 @@ import GameControl from './GameControl';
 //   },
 // };
 
-export default GameControl;
+export {GameControl, GameDrawUtil};

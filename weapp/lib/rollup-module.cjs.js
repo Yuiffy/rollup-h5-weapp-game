@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const createInitData = () => {
   const initData = {
     local: {
@@ -110,6 +112,44 @@ class GameControl {
   }
 }
 
+const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 3, lineColor = 'black') => {
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth = lineSize; //线条的宽度
+  ctx.strokeStyle = lineColor; //线条的颜色
+  const blockWidth = (width - lineSize) / wSize;
+  const blockHeight = (height - lineSize) / hSize;
+  for (let i = 0; i < wSize + 1; i++) {
+    const pos = lineSize / 2 + i * blockWidth;
+    ctx.moveTo(pos, 0);
+    ctx.lineTo(pos, height);
+    ctx.stroke();
+  }
+  for (let i = 0; i < hSize + 1; i++) {
+    const pos = lineSize / 2 + i * blockHeight;
+    ctx.moveTo(0, pos);
+    ctx.lineTo(width, pos);
+    ctx.stroke();
+  }
+};
+
+const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
+  const linePercent = 3.0 / 800; //TODO:搞定这个
+  const xb = 100.0 / wSize,
+        yb = 100.0 / hSize;
+  return {
+    top: linePercent / 2 + x * xb + '%',
+    left: linePercent / 2 + y * yb + '%',
+    width: xb + '%',
+    height: yb + '%'
+  };
+};
+
+var GameDrawUtil = /*#__PURE__*/Object.freeze({
+  drawBoard: drawBoard,
+  getPercentPos: getPercentPos
+});
+
 // import WxCameraHolder from './WxCameraHolder';
 
-module.exports = GameControl;
+exports.GameControl = GameControl;
+exports.GameDrawUtil = GameDrawUtil;

@@ -1,38 +1,31 @@
-import React, {Component} from 'react';
-import logo from './logo.svg';
+import React, { Component } from 'react';
 import './App.css';
-import Camera from "./Camera";
+import { connect } from 'react-redux';
+import { Link, Route, Switch, withRouter } from 'react-router-dom';
+import MainControl from './game/views/MainControl';
+
+const mainControl = ({ match }) => (<MainControl
+  {...this.props}
+  roomId={match.params.roomId}
+  player={match.params.playerId}
+/>);
+const menuPage = () => (<div className="menuPage">
+  <div><Link to="/local">本地双人</Link></div>
+  <div><Link to="/online/123/0">在线双人-南位</Link></div>
+  <div><Link to="/online/123/1">在线双人-北位</Link></div>
+  {/* <div><Link to="/">主菜单</Link></div> */}
+                        </div>);
 
 class App extends Component {
-
-  onSendImage(fileObj, name) {
-    const form = new FormData();
-    form.append('image', fileObj, name);
-    const apiUrl = `/ocr/uploadImage`;
-    fetch(apiUrl, {
-      method: 'POST',
-      credentials: 'same-origin',
-      body: form,
-      headers: {
-        // 'content-type': 'application/json',
-      },
-    }).then((response) => {
-      console.log(response);
-      if (response.status == 200)
-        alert("success! " + JSON.stringify(response.body));
-      else
-        alert(`Error, response: ${response.status} ${response.statusText}`)
-    }).catch((e) => {
-      console.log(e);
-      alert("error! " + JSON.stringify(e))
-    });
-  }
-
   render() {
     return (
-      <Camera onSendImage={this.onSendImage}/>
+      <Switch>
+        <Route exact path="/" component={menuPage} />
+        <Route path="/local" component={mainControl} />
+        <Route path="/online/:roomId/:playerId" component={mainControl} />
+      </Switch>
     );
   }
 }
 
-export default App;
+export default withRouter(connect()(App));
