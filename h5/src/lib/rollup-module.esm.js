@@ -129,9 +129,9 @@ const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, line
 };
 
 const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
-  const linePercent = 3.0 / 800; //TODO:搞定这个
-  const xb = 100.0 / wSize,
-        yb = 100.0 / hSize;
+  const linePercent = 3.0 / 800 * 100; //TODO:搞定这个
+  const xb = (100.0 - linePercent) / wSize,
+        yb = (100.0 - linePercent) / hSize;
   return {
     top: linePercent / 2 + x * xb + '%',
     left: linePercent / 2 + y * yb + '%',

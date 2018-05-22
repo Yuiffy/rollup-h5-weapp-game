@@ -45,10 +45,11 @@ class PlayControl extends Component {
           <canvas width={800} height={800} ref={(canvas) => {
             this.canvas = canvas;
           }}></canvas>
-          <div class="overlay">
-            {players.map((obj) => {
+          <div className="overlay">
+            {players.map((obj, index) => {
                 const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y);
-                return (<div style={{top, left, width, height}} className="player-chess">{JSON.stringify(obj)}</div>);
+                return (<div key={index} style={{top, left, width, height}}
+                             className="player-chess">{JSON.stringify(obj)}</div>);
               }
             )}
           </div>
