@@ -59,6 +59,7 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount) => {
     const x = preX + gx;
     const y = preY + gy;
     if (x >= 0 && x < height && y >= 0 && y < width) {
+
       if (stepCount === 1) ret.push({ x, y });else {
         const newBlock = getAccessableBlockList(x, y, width, height, stepCount);
         // TODO: 去重然后concat进ret列表。
@@ -153,6 +154,7 @@ class GameControl {
 
 const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 3, lineColor = 'black') => {
   const ctx = canvas.getContext('2d');
+  ctx.save();
   ctx.lineWidth = lineSize; //线条的宽度
   ctx.strokeStyle = lineColor; //线条的颜色
   const blockWidth = (width - lineSize) / wSize;
@@ -169,6 +171,7 @@ const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, line
     ctx.lineTo(width, pos);
     ctx.stroke();
   }
+  ctx.restore();
 };
 
 const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
@@ -183,9 +186,34 @@ const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
   };
 };
 
+const drawLine = (canvas, x1, y1, x2, y2, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 20, lineColor = 'green') => {
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.lineWidth = lineSize; //线条的宽度
+  ctx.strokeStyle = lineColor; //线条的颜色
+
+  const blockToPix = (x, y, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 20) => {
+    const blockWidth = (width - lineSize) / wSize;
+    const blockHeight = (height - lineSize) / hSize;
+    const xPos = lineSize / 2 + x * blockWidth;
+    const yPos = lineSize / 2 + y * blockHeight;
+    return { x: xPos, y: yPos };
+  };
+
+  const { x: stX, y: stY } = blockToPix(x1, y1, width, height, wSize, hSize, lineSize);
+  const { x: edX, y: edY } = blockToPix(x2, y2, width, height, wSize, hSize, lineSize);
+  ctx.beginPath();
+  ctx.moveTo(stX, stY);
+  ctx.lineTo(edX, edY);
+  ctx.stroke();
+
+  ctx.restore();
+};
+
 var GameDrawUtil = /*#__PURE__*/Object.freeze({
   drawBoard: drawBoard,
-  getPercentPos: getPercentPos
+  getPercentPos: getPercentPos,
+  drawLine: drawLine
 });
 
 // import WxCameraHolder from './WxCameraHolder';

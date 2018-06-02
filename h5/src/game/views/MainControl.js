@@ -14,6 +14,7 @@ class PlayControl extends Component {
     this.game = new GameControl();
     this.state = {
       players: this.game.data.state.players,
+      walls: this.game.data.state.walls,
       actionList: this.game.getActionList(),
       gameOver: this.game.data.state.gameOver,
       winner: this.game.data.state.winner
@@ -25,6 +26,7 @@ class PlayControl extends Component {
 
   componentDidMount() {
     GameDrawUtil.drawBoard(this.canvas, this.canvas.width, this.canvas.height);
+    this.updateWalls();
   }
 
   componentWillUnmount() {
@@ -34,6 +36,19 @@ class PlayControl extends Component {
   componentWillReceiveProps(nextProps) {
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    this.updateWalls();
+  }
+
+  updateWalls() {
+    const {walls} = this.state;
+    walls.forEach(wall => {
+      const {st, ed} = wall;
+      console.log("st->ed", st, ed);
+      GameDrawUtil.drawLine(this.canvas, st.x, st.y, ed.x, ed.y, this.canvas.width, this.canvas.height);
+    });
+  }
+
   updateActionList() {
     this.setState({actionList: this.game.getActionList()});
   }
@@ -41,12 +56,13 @@ class PlayControl extends Component {
   doAction(obj) {
     console.log("doAction!", obj);
     this.game.doAction(obj);
-    const {gameOver, winner} = this.game.data.state;
+    const {gameOver, winner, walls} = this.game.data.state;
     if (gameOver)
       alert(winner + "赢了！");
     this.setState({
       players: this.game.data.state.players,
       actionList: this.game.getActionList(),
+      walls,
       gameOver,
       winner
     });

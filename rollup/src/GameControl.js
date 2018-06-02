@@ -66,6 +66,7 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount) => {
     const x = preX + gx;
     const y = preY + gy;
     if (x >= 0 && x < height && y >= 0 && y < width) {
+
       if (stepCount === 1) ret.push({x, y});
       else {
         const newBlock = getAccessableBlockList(x, y, width, height, stepCount);

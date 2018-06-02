@@ -1,5 +1,6 @@
 const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 3, lineColor = 'black') => {
   const ctx = canvas.getContext('2d');
+  ctx.save();
   ctx.lineWidth = lineSize;//线条的宽度
   ctx.strokeStyle = lineColor;//线条的颜色
   const blockWidth = (width - lineSize) / wSize;
@@ -16,6 +17,7 @@ const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, line
     ctx.lineTo(width, pos);
     ctx.stroke();
   }
+  ctx.restore();
 };
 
 const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
@@ -27,6 +29,32 @@ const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
     width: xb + '%',
     height: yb + '%'
   };
+};
+
+const drawLine = (canvas, x1, y1, x2, y2, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 20, lineColor = 'green') => {
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.lineWidth = lineSize; //线条的宽度
+  ctx.strokeStyle = lineColor; //线条的颜色
+  const blockWidth = (width - lineSize) / wSize;
+  const blockHeight = (height - lineSize) / hSize;
+
+  const blockToPix = (x, y, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 20) => {
+    const blockWidth = (width - lineSize) / wSize;
+    const blockHeight = (height - lineSize) / hSize;
+    const xPos = lineSize / 2 + x * blockWidth;
+    const yPos = lineSize / 2 + y * blockHeight;
+    return {x: xPos, y: yPos};
+  };
+
+  const {x: stX, y: stY} =  blockToPix(x1, y1, width, height, wSize, hSize, lineSize);
+  const {x: edX, y: edY} =  blockToPix(x2, y2, width, height, wSize, hSize, lineSize);
+  ctx.beginPath();
+  ctx.moveTo(stX, stY);
+  ctx.lineTo(edX, edY);
+  ctx.stroke();
+
+  ctx.restore();
 };
 
 
@@ -75,4 +103,4 @@ class GameBoard {
   }
 }
 
-export {drawBoard, getPercentPos};
+export {drawBoard, getPercentPos, drawLine};
