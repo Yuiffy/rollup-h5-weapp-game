@@ -13,7 +13,8 @@ class PlayControl extends Component {
     this.canvas = null;
     this.game = new GameControl();
     this.state = {
-      players: this.game.data.state.players
+      players: this.game.data.state.players,
+      actionList: []
     };
   }
 
@@ -22,6 +23,7 @@ class PlayControl extends Component {
 
   componentDidMount() {
     GameDrawUtil.drawBoard(this.canvas, this.canvas.width, this.canvas.height);
+    this.updateActionList();
   }
 
   componentWillUnmount() {
@@ -31,12 +33,25 @@ class PlayControl extends Component {
   componentWillReceiveProps(nextProps) {
   }
 
+  updateActionList() {
+    this.setState({actionList: this.game.getActionList()});
+  }
+
+  doAction(obj) {
+    console.log("doAction!", obj);
+    this.game.doAction(obj);
+    this.setState({
+      players: this.game.data.state.players,
+      actionList: this.game.getActionList()
+    });
+  }
+
   render() {
     const {
       player, roomId,
     } = this.props;
 
-    const {players} = this.state;
+    const {players, actionList} = this.state;
 
     return (
       <div className="full-window">
@@ -49,7 +64,14 @@ class PlayControl extends Component {
             {players.map((obj, index) => {
                 const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y);
                 return (<div key={index} style={{top, left, width, height}}
-                             className="player-chess">{JSON.stringify(obj)}</div>);
+                             className="chess-item player-chess">{JSON.stringify(obj)}</div>);
+              }
+            )}
+            {actionList.filter((obj) => obj.type === 'MOVE').map((obj, index) => {
+                const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y);
+                return (<div key={index} style={{top, left, width, height}}
+                             onClick={() => this.doAction(obj)}
+                             className="chess-item action-chess">{JSON.stringify(obj)}</div>);
               }
             )}
           </div>
