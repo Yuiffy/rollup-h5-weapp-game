@@ -9,7 +9,14 @@ const createInitData = () => {
         width: 9,
         height: 9
       },
-      playerWallCount: 10
+      playerWallCount: 10,
+      endLine: [{
+        st: { x: 0, y: 0 },
+        ed: { x: 0, y: 8 }
+      }, {
+        st: { x: 8, y: 0 },
+        ed: { x: 8, y: 8 }
+      }]
     },
     state: {
       nowPlayer: 0,
@@ -36,7 +43,9 @@ const createInitData = () => {
           x: 4,
           y: 6
         }
-      }]
+      }],
+      isGameOver: false,
+      winner: undefined
     }
   };
   return initData;
@@ -97,6 +106,35 @@ class GameControl {
     return moveActionList.concat(putWallActionList);
   }
 
+  getEndPosOfPlayer(playerId) {
+    const players = this.data.state.players;
+    // const player = players[playerId];
+    // const {x, y} = player;
+    const endLine = this.data.rule.endLine[playerId];
+    const xRange = endLine.ed.x - endLine.st.x;
+    const yRange = endLine.ed.y - endLine.st.y;
+    const gx = xRange === 0 ? 0 : xRange / Math.abs(xRange);
+    const gy = yRange === 0 ? 0 : yRange / Math.abs(yRange);
+    let ret = [];
+    for (let x = endLine.st.x, y = endLine.st.y; !(x === endLine.ed.x && y === endLine.ed.y); x += gx, y += gy) {
+      ret.push({ x, y });
+    }
+    return ret;
+  }
+
+  isGameOver() {
+    const players = this.data.state.players;
+    for (let i in players) {
+      const player = players[i];
+      const { x, y } = player;
+      const endPos = this.getEndPosOfPlayer(i);
+      const atEnd = endPos.filter(({ x: xx, y: yy }) => xx === x && yy === y);
+      console.log("endPos, atEnd", endPos, atEnd, x, y);
+      if (atEnd.length > 0) return { gameOver: true, winner: i };
+    }
+    return { gameOver: false, winner: undefined };
+  }
+
   doAction(action) {
     if (action.type === 'MOVE') {
       const { player, x, y } = action;
@@ -104,6 +142,11 @@ class GameControl {
       thePlayerState.x = x;
       thePlayerState.y = y;
       this.data.state.nowPlayer = getNextPlayer(player, this.data.rule.playerOrder);
+      const { gameOver, winner } = this.isGameOver();
+      if (gameOver) {
+        this.data.state.gameOver = true;
+        this.data.state.winner = winner;
+      }
     }
   }
 }
