@@ -44,30 +44,30 @@ const createInitData = () => {
         },
       ],
       walls: [
-        {
-          round: -1,
-          player: 0,
-          st: {
-            x: 4,
-            y: 4,
-          },
-          ed: {
-            x: 4,
-            y: 6,
-          },
-        },
-        {
-          round: -1,
-          player: 0,
-          st: {
-            x: 6,
-            y: 4,
-          },
-          ed: {
-            x: 4,
-            y: 4,
-          },
-        },
+        // {
+        //   round: -1,
+        //   player: 0,
+        //   st: {
+        //     x: 4,
+        //     y: 4,
+        //   },
+        //   ed: {
+        //     x: 4,
+        //     y: 6,
+        //   },
+        // },
+        // {
+        //   round: -1,
+        //   player: 0,
+        //   st: {
+        //     x: 6,
+        //     y: 4,
+        //   },
+        //   ed: {
+        //     x: 4,
+        //     y: 4,
+        //   },
+        // },
       ],
       isGameOver: false,
       winner: undefined
