@@ -42,8 +42,8 @@ const drawLine = (canvas, x1, y1, x2, y2, width = 800, height = 800, wSize = 9, 
   const blockToPix = (x, y, width = 800, height = 800, wSize = 9, hSize = 9, lineSize = 20) => {
     const blockWidth = (width - lineSize) / wSize;
     const blockHeight = (height - lineSize) / hSize;
-    const xPos = lineSize / 2 + x * blockWidth;
-    const yPos = lineSize / 2 + y * blockHeight;
+    const xPos = lineSize / 2 + y * blockWidth;
+    const yPos = lineSize / 2 + x * blockHeight;
     return {x: xPos, y: yPos};
   };
 

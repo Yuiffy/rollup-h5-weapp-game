@@ -32,6 +32,11 @@
     height: 90vw;
 }
 
+.overlay.wall-overlay {
+    z-index: 5;
+    pointer-events: none;
+}
+
 .chess-item {
     position: absolute;
 }

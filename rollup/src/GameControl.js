@@ -50,6 +50,18 @@ const createInitData = () => {
             y: 6,
           },
         },
+        {
+          round: -1,
+          player: 0,
+          st: {
+            x: 6,
+            y: 4,
+          },
+          ed: {
+            x: 4,
+            y: 4,
+          },
+        },
       ],
       isGameOver: false,
       winner: undefined
@@ -58,18 +70,43 @@ const createInitData = () => {
   return initData;
 };
 
-const getAccessableBlockList = (preX, preY, width, height, stepCount) => {
+const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []) => {
   const ret = [];
   if (stepCount === 0) return ret;
   const go = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+
+  function wallsBlock(preX, preY, x, y, walls) {
+    //判断直线AB是否与线段CD相交
+    function lineIntersectSide(A, B, C, D) {
+      // A(x1, y1), B(x2, y2)的直线方程为：
+      // f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0
+      const fC = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
+      const fD = (D.y - A.y) * (A.x - B.x) - (D.x - A.x) * (A.y - B.y);
+      return fC * fD <= 0;
+    }
+
+    function sideIntersectSide(A, B, C, D) {
+      if (!lineIntersectSide(A, B, C, D))
+        return false;
+      return lineIntersectSide(C, D, A, B);
+    }
+
+    let blockWalls = [];
+    walls.forEach((wall) => {
+      const {st, ed} = wall;
+      if (sideIntersectSide({x: preX + 0.5, y: preY + 0.5}, {x: x + 0.5, y: y + 0.5}, st, ed)) blockWalls.push(wall);
+    });
+    return blockWalls.length > 0 ? blockWalls : false;
+  }
+
   go.forEach(({x: gx, y: gy}) => {
     const x = preX + gx;
     const y = preY + gy;
     if (x >= 0 && x < height && y >= 0 && y < width) {
-
+      if (wallsBlock(preX, preY, x, y, walls)) return;
       if (stepCount === 1) ret.push({x, y});
       else {
-        const newBlock = getAccessableBlockList(x, y, width, height, stepCount);
+        const newBlock = getAccessableBlockList(x, y, width, height, stepCount - 1, walls);
         // TODO: 去重然后concat进ret列表。
       }
     }
@@ -100,11 +137,11 @@ class GameControl {
   }
 
   getActionList() {
-    const {nowPlayer} = this.data.state;
+    const {nowPlayer, walls} = this.data.state;
     const nowPlayerState = this.data.state.players[nowPlayer];
     const {x, y} = nowPlayerState;
     const {width, height} = this.data.rule.map;
-    const accessBlockList = getAccessableBlockList(x, y, width, height, 1);
+    const accessBlockList = getAccessableBlockList(x, y, width, height, 1, walls);
     const moveActionList = accessBlockList.map(({x: nextX, y: nextY}) => ({
       type: 'MOVE',
       player: nowPlayer,

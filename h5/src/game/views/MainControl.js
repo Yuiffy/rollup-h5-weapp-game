@@ -11,6 +11,7 @@ class PlayControl extends Component {
     super(props, context);
     this.game = null;
     this.canvas = null;
+    this.canvasWall = null;
     this.game = new GameControl();
     this.state = {
       players: this.game.data.state.players,
@@ -45,7 +46,7 @@ class PlayControl extends Component {
     walls.forEach(wall => {
       const {st, ed} = wall;
       console.log("st->ed", st, ed);
-      GameDrawUtil.drawLine(this.canvas, st.x, st.y, ed.x, ed.y, this.canvas.width, this.canvas.height);
+      GameDrawUtil.drawLine(this.canvasWall, st.x, st.y, ed.x, ed.y, this.canvas.width, this.canvas.height);
     });
   }
 
@@ -82,6 +83,11 @@ class PlayControl extends Component {
           <canvas width={800} height={800} ref={(canvas) => {
             this.canvas = canvas;
           }}></canvas>
+          <div className="overlay wall-overlay">
+            <canvas width={800} height={800} ref={(canvas) => {
+              this.canvasWall = canvas;
+            }}/>
+          </div>
           <div className="overlay">
             {players.map((obj, index) => {
                 const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y);
