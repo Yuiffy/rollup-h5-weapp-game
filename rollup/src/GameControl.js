@@ -128,12 +128,13 @@ function getNextPlayer(player, playerOrder) {
 }
 
 class GameControl {
-  constructor() {
-    this.init();
+  constructor(width = 9, height = 9) {
+    this.init(width, height);
   }
 
-  init() {
+  init(width, height) {
     this.data = createInitData();
+    this.data.rule.map = {width, height};
     return this;
   }
 
@@ -188,11 +189,28 @@ class GameControl {
   }
 
   doAction(action) {
+    const {player} =action;
+    let actionDone = false;
     if (action.type === 'MOVE') {
-      const {player, x, y} = action;
+      const {x, y} = action;
       const thePlayerState = this.data.state.players[player];
       thePlayerState.x = x;
       thePlayerState.y = y;
+      actionDone = true;
+    }
+
+    if (action.type === 'WALL') {
+      const { st, ed} = action;
+      const walls = this.data.state.walls;
+      walls.push({
+        round: this.data.state.round,
+        player,
+        st, ed
+      });
+      actionDone = true;
+    }
+
+    if (actionDone) {
       this.data.state.nowPlayer = getNextPlayer(player, this.data.rule.playerOrder);
       const {gameOver, winner} = this.isGameOver();
       if (gameOver) {

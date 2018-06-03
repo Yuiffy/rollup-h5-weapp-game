@@ -23,11 +23,18 @@ const drawBoard = (canvas, width = 800, height = 800, wSize = 9, hSize = 9, line
 const getPercentPos = (x, y, wSize = 9, hSize = 9) => {
   const linePercent = 3.0 / 800 * 100;//TODO:搞定这个
   const xb = (100.0 - linePercent) / wSize, yb = (100.0 - linePercent) / hSize;
+  const number = {
+    top: (linePercent / 2 + x * xb),
+    left: (linePercent / 2 + y * yb),
+    width: xb,
+    height: yb
+  };
   return {
-    top: (linePercent / 2 + x * xb) + '%',
-    left: (linePercent / 2 + y * yb) + '%',
-    width: xb + '%',
-    height: yb + '%'
+    top: number.top + '%',
+    left: number.left + '%',
+    width: number.width + '%',
+    height: number.height + '%',
+    number
   };
 };
 
@@ -47,8 +54,8 @@ const drawLine = (canvas, x1, y1, x2, y2, width = 800, height = 800, wSize = 9, 
     return {x: xPos, y: yPos};
   };
 
-  const {x: stX, y: stY} =  blockToPix(x1, y1, width, height, wSize, hSize, lineSize);
-  const {x: edX, y: edY} =  blockToPix(x2, y2, width, height, wSize, hSize, lineSize);
+  const {x: stX, y: stY} = blockToPix(x1, y1, width, height, wSize, hSize, lineSize);
+  const {x: edX, y: edY} = blockToPix(x2, y2, width, height, wSize, hSize, lineSize);
   ctx.beginPath();
   ctx.moveTo(stX, stY);
   ctx.lineTo(edX, edY);

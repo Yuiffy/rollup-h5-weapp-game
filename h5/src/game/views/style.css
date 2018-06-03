@@ -49,3 +49,8 @@
 .action-chess {
     background: yellow;
 }
+
+.click-point{
+    background: brown;
+    z-index: 10;
+}
