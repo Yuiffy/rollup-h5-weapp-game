@@ -130,7 +130,9 @@ class PlayControl extends Component {
             {players.map((obj, index) => {
                 const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y, this.game.data.rule.map.width, this.game.data.rule.map.height);
                 return (<div key={index} style={{...display.chess[obj.id], top, left, width, height}}
-                             className="chess-item player-chess">{JSON.stringify(obj)}</div>);
+                             className="chess-item player-chess">
+                  {/*{JSON.stringify(obj)}*/}
+                  </div>);
               }
             )}
             {!gameOver ? (
@@ -147,7 +149,9 @@ class PlayControl extends Component {
                   const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y, this.game.data.rule.map.width, this.game.data.rule.map.height);
                   return (<div key={index} style={{top, left, width, height}}
                                onClick={() => this.doAction(obj)}
-                               className="chess-item action-chess">{JSON.stringify(obj)}</div>);
+                               className="chess-item action-chess">
+                    {/*{JSON.stringify(obj)}*/}
+                    </div>);
                 }
               )
             ) : null}

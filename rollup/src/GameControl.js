@@ -19,11 +19,11 @@ const createInitData = () => {
       endLine: [
         {
           st: {x: 0, y: 0},
-          ed: {x: 0, y: 8}
+          ed: {x: 0, y: 9}
         },
         {
           st: {x: 8, y: 0},
-          ed: {x: 8, y: 8}
+          ed: {x: 8, y: 9}
         }
       ],
     },
