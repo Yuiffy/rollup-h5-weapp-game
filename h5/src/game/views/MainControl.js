@@ -102,7 +102,8 @@ class PlayControl extends Component {
       actionList: this.game.getActionList(),
       walls,
       gameOver,
-      winner
+      winner,
+      pointClick: []
     });
   }
 
@@ -132,7 +133,7 @@ class PlayControl extends Component {
                              className="chess-item player-chess">{JSON.stringify(obj)}</div>);
               }
             )}
-            {
+            {!gameOver ? (
               getAllPoints(this.game.data.rule.map.width, this.game.data.rule.map.height).map((obj, index) => {
                   const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y, this.game.data.rule.map.width, this.game.data.rule.map.height).number;
                   return (
@@ -140,8 +141,7 @@ class PlayControl extends Component {
                          onClick={() => this.pointClick(obj.x, obj.y)}
                          className={`chess-item click-point ${inArray(obj, pointClick) ? 'already-click' : null}`}></div>);
                 }
-              )
-            }
+              )) : null}
             {!gameOver ? (
               actionList.filter((obj) => obj.type === 'MOVE').map((obj, index) => {
                   const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y, this.game.data.rule.map.width, this.game.data.rule.map.height);
