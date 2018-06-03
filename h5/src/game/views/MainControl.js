@@ -6,10 +6,20 @@ import SocketClient, {gameMessage} from '../../utils/SocketClient';
 import {socketContainer} from '../../utils';
 import {GameControl, GameDrawUtil} from "../../lib/rollup-module.esm";
 
-const getAllPoints = (width, height) => {
+const inArray = (obj, arr) => {
+  let isIn = false;
+  arr.forEach((item) => {
+    if (item.x === obj.x && item.y === obj.y) isIn = true;
+  });
+  return isIn;
+};
+
+const getAllPoints = (width, height, ignore = []) => {
   const ret = [];
   for (let i = 0; i <= width; i++) {
     for (let j = 0; j <= height; j++) {
+      let shouldIgnore = inArray({x: i, y: j}, ignore);
+      if (shouldIgnore) continue;
       ret.push({x: i, y: j});
     }
   }
@@ -72,6 +82,7 @@ class PlayControl extends Component {
       this.setState({pointClick: [...this.state.pointClick, {x, y}]});
     } else {
       console.log(this.state.pointClick, x, y);
+      if (this.state.pointClick[0].x === x && this.state.pointClick[0].y === y) return;
       this.doAction({
         type: 'WALL',
         st: this.state.pointClick[0], ed: {x, y}
@@ -100,7 +111,7 @@ class PlayControl extends Component {
       player, roomId,
     } = this.props;
 
-    const {players, actionList, gameOver, display} = this.state;
+    const {players, actionList, gameOver, display, pointClick} = this.state;
 
     return (
       <div className="full-window">
@@ -127,7 +138,7 @@ class PlayControl extends Component {
                   return (
                     <div key={index} style={{top: (top - 1) + '%', left: (left - 1) + '%', width: '2%', height: '2%'}}
                          onClick={() => this.pointClick(obj.x, obj.y)}
-                         className="chess-item click-point"></div>);
+                         className={`chess-item click-point ${inArray(obj, pointClick) ? 'already-click' : null}`}></div>);
                 }
               )
             }

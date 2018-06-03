@@ -50,7 +50,14 @@
     background: yellow;
 }
 
-.click-point{
+.click-point {
     background: brown;
+    border-radius: 10000px;
     z-index: 10;
+}
+
+.click-point.already-click {
+    /*background: yellow;*/
+    border-radius: 0;
+    outline: 10px solid red;
 }

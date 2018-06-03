@@ -35,29 +35,32 @@ const createInitData = () => {
         y: 4,
         wallCount: 10
       }],
-      walls: [{
-        round: -1,
-        player: 0,
-        st: {
-          x: 4,
-          y: 4
-        },
-        ed: {
-          x: 4,
-          y: 6
-        }
-      }, {
-        round: -1,
-        player: 0,
-        st: {
-          x: 6,
-          y: 4
-        },
-        ed: {
-          x: 4,
-          y: 4
-        }
-      }],
+      walls: [
+        // {
+        //   round: -1,
+        //   player: 0,
+        //   st: {
+        //     x: 4,
+        //     y: 4,
+        //   },
+        //   ed: {
+        //     x: 4,
+        //     y: 6,
+        //   },
+        // },
+        // {
+        //   round: -1,
+        //   player: 0,
+        //   st: {
+        //     x: 6,
+        //     y: 4,
+        //   },
+        //   ed: {
+        //     x: 4,
+        //     y: 4,
+        //   },
+        // },
+      ],
       isGameOver: false,
       winner: undefined
     }
@@ -176,7 +179,7 @@ class GameControl {
   }
 
   doAction(action) {
-    const { player } = action;
+    const { player = this.data.state.nowPlayer } = action;
     let actionDone = false;
     if (action.type === 'MOVE') {
       const { x, y } = action;

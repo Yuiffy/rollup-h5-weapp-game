@@ -189,7 +189,7 @@ class GameControl {
   }
 
   doAction(action) {
-    const {player} =action;
+    const {player = this.data.state.nowPlayer} = action;
     let actionDone = false;
     if (action.type === 'MOVE') {
       const {x, y} = action;
@@ -200,7 +200,7 @@ class GameControl {
     }
 
     if (action.type === 'WALL') {
-      const { st, ed} = action;
+      const {st, ed} = action;
       const walls = this.data.state.walls;
       walls.push({
         round: this.data.state.round,
