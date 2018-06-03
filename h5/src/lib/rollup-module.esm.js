@@ -3,6 +3,9 @@ const createInitData = () => {
     local: {
       players: [0]
     },
+    display: {
+      chess: [{ background: 'orange' }, { background: 'pink' }]
+    },
     rule: {
       playerOrder: [0, 1],
       map: {

@@ -14,6 +14,7 @@ class PlayControl extends Component {
     this.canvasWall = null;
     this.game = new GameControl();
     this.state = {
+      display: this.game.data.display,
       players: this.game.data.state.players,
       walls: this.game.data.state.walls,
       actionList: this.game.getActionList(),
@@ -74,7 +75,7 @@ class PlayControl extends Component {
       player, roomId,
     } = this.props;
 
-    const {players, actionList, gameOver} = this.state;
+    const {players, actionList, gameOver, display} = this.state;
 
     return (
       <div className="full-window">
@@ -91,7 +92,7 @@ class PlayControl extends Component {
           <div className="overlay">
             {players.map((obj, index) => {
                 const {top, left, width, height} = GameDrawUtil.getPercentPos(obj.x, obj.y);
-                return (<div key={index} style={{top, left, width, height}}
+                return (<div key={index} style={{...display.chess[obj.id], top, left, width, height}}
                              className="chess-item player-chess">{JSON.stringify(obj)}</div>);
               }
             )}
