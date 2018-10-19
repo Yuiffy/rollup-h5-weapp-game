@@ -75,6 +75,18 @@ const createInitData = () => {
   };
   return initData;
 };
+// {st:{x,y}, ed:{x,y}} to [{x1,y1}, {x2,y2}, ...] ，支持水平线和垂直线。
+function lineToBlocks(endLine) {
+  const xRange = (endLine.ed.x - endLine.st.x);
+  const yRange = endLine.ed.y - endLine.st.y;
+  const gx = xRange === 0 ? 0 : (xRange / Math.abs(xRange));
+  const gy = yRange === 0 ? 0 : (yRange / Math.abs(yRange));
+  let ret = [];
+  for (let x = endLine.st.x, y = endLine.st.y; !(x === endLine.ed.x && y === endLine.ed.y); x += gx, y += gy) {
+    ret.push({ x, y });
+  }
+  return ret;
+}
 
 const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []) => {
   const ret = [];
@@ -120,6 +132,37 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []
   return ret;
 };
 
+//在多个blockList里判断是否有重复的block
+const IfDuplicateBetweenBlockLists = (blockLists)=>{
+  const blockMap = {};
+  for(let i in blockLists){
+    const list = blockLists[i];
+    for(let j in list){
+      const block = list[j];
+      //TODO: 判断是否坐标在blockMap里，在的话返回重复，不在的话加入map
+    }
+  }
+};
+
+/*
+* newWall: {st:{x,y}, ed:{x,y}},
+* players: [{x,y}, {x,y}],
+* endLine: [{st:{x,y}, ed:{x,y}}, ... ]
+* 判断新墙能不能放，如果放下去会导致有人到不了终点就不能放。和以前的线有交叉也不能放。
+* */
+const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls)=>{
+  const ifOneCanArriveEndLine = (width, height, player, endLine, walls)=>{
+    const {x,y} = player;
+    const arrBlocks = getAccessableBlockList(x,y,width, height, width*height, walls);
+    const endBlocks = lineToBlocks(endLine);
+    const arrMaps = {};
+
+    const crossBlocks = endBlocks.filter(({x,y})=>{
+
+    });
+  };
+};
+
 function getNextPlayer(player, playerOrder) {
   let index = playerOrder.indexOf(player);
   index += 1;
@@ -160,18 +203,11 @@ class GameControl {
   }
 
   getEndPosOfPlayer(playerId) {
-    const players = this.data.state.players;
+    // const players = this.data.state.players;
     // const player = players[playerId];
     // const {x, y} = player;
     const endLine = this.data.rule.endLine[playerId];
-    const xRange = (endLine.ed.x - endLine.st.x);
-    const yRange = endLine.ed.y - endLine.st.y;
-    const gx = xRange === 0 ? 0 : (xRange / Math.abs(xRange));
-    const gy = yRange === 0 ? 0 : (yRange / Math.abs(yRange));
-    let ret = [];
-    for (let x = endLine.st.x, y = endLine.st.y; !(x === endLine.ed.x && y === endLine.ed.y); x += gx, y += gy) {
-      ret.push({x, y});
-    }
+    let ret = lineToBlocks(endLine);
     return ret;
   }
 
