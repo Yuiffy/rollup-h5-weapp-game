@@ -71,6 +71,18 @@ const createInitData = () => {
   };
   return initData;
 };
+// {st:{x,y}, ed:{x,y}} to [{x1,y1}, {x2,y2}, ...] ，支持水平线和垂直线。
+function lineToBlocks(endLine) {
+  const xRange = endLine.ed.x - endLine.st.x;
+  const yRange = endLine.ed.y - endLine.st.y;
+  const gx = xRange === 0 ? 0 : xRange / Math.abs(xRange);
+  const gy = yRange === 0 ? 0 : yRange / Math.abs(yRange);
+  let ret = [];
+  for (let x = endLine.st.x, y = endLine.st.y; !(x === endLine.ed.x && y === endLine.ed.y); x += gx, y += gy) {
+    ret.push({ x, y });
+  }
+  return ret;
+}
 
 const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []) => {
   const ret = [];
@@ -100,18 +112,94 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []
     return blockWalls.length > 0 ? blockWalls : false;
   }
 
-  go.forEach(({ x: gx, y: gy }) => {
-    const x = preX + gx;
-    const y = preY + gy;
-    if (x >= 0 && x < height && y >= 0 && y < width) {
-      if (wallsBlock(preX, preY, x, y, walls)) return;
-      if (stepCount === 1) ret.push({ x, y });else {
-        const newBlock = getAccessableBlockList(x, y, width, height, stepCount - 1, walls);
-        // TODO: 去重然后concat进ret列表。
-      }
+  class VisitMap {
+    constructor() {
+      this.visitMap = {};
     }
-  });
-  return ret;
+
+    xy2key(x, y) {
+      return `${x},${y}`;
+    }
+    add(x, y) {
+      this.visitMap[this.xy2key(x, y)] = { x, y };
+    }
+    check(x, y) {
+      return this.visitMap.hasOwnProperty(this.xy2key(x, y));
+    }
+    del(x, y) {
+      delete this.visitMap[this.xy2key(x, y)];
+    }
+    toList() {
+      const ret = [];
+      Object.keys(this.visitMap).forEach(k => {
+        ret.push(this.visitMap[k]);
+      });
+      return ret;
+    }
+  }
+
+  const alreadyVisit = new VisitMap();
+
+  const dfs = (px, py, step) => {
+    if (step === 0) return;
+    go.forEach(({ x: gx, y: gy }) => {
+      const x = px + gx;
+      const y = py + gy;
+      if (x >= 0 && x < height && y >= 0 && y < width) {
+        if (wallsBlock(px, py, x, y, walls)) return;
+        if (alreadyVisit.check(x, y)) return;
+
+        alreadyVisit.add(x, y);
+        dfs(x, y, step - 1);
+      }
+    });
+  };
+  alreadyVisit.add(preX, preY);
+  dfs(preX, preY, stepCount);
+
+  return alreadyVisit.toList().filter(({ x, y }) => !(x === preX && y === preY));
+};
+
+//在多个blockList里判断是否有重复的block
+const IfDuplicateBetweenBlockLists = blockLists => {
+  const blockMap = {};
+  const blk2key = ({ x, y }) => `${x},${y}`;
+  for (let i in blockLists) {
+    const list = blockLists[i];
+    for (let j in list) {
+      const block = list[j];
+      if (blockMap.hasOwnProperty(blk2key(block))) {
+        console.log("repeat!", block, blk2key(block), blockMap);
+        return true;
+      }
+      blockMap[blk2key(block)] = block;
+    }
+  }
+  return false;
+};
+
+/*
+* newWall: {st:{x,y}, ed:{x,y}},
+* players: [{x,y}, {x,y}],
+* endLine: [{st:{x,y}, ed:{x,y}}, ... ]
+* 判断新墙能不能放，如果放下去会导致有人到不了终点就不能放。和以前的线有交叉也不能放。
+* */
+const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) => {
+  const ifOneCanArriveEndLine = (width, height, player, endLine, walls) => {
+    const { x, y } = player;
+    const arrBlocks = getAccessableBlockList(x, y, width, height, width * height, walls);
+    const endBlocks = lineToBlocks(endLine);
+    if (IfDuplicateBetweenBlockLists([arrBlocks, endBlocks])) return true;
+    return false;
+  };
+  const newWalls = [...walls, newWall];
+  for (let i in players) {
+    const player = players[i];
+    const endLine = endLines[i];
+    if (!ifOneCanArriveEndLine(width, height, player, endLine, newWalls)) return false;
+  }
+  //TODO: 判断线是否交叉，如果交叉了返回false
+  return true;
 };
 
 function getNextPlayer(player, playerOrder) {
@@ -154,18 +242,11 @@ class GameControl {
   }
 
   getEndPosOfPlayer(playerId) {
-    const players = this.data.state.players;
+    // const players = this.data.state.players;
     // const player = players[playerId];
     // const {x, y} = player;
     const endLine = this.data.rule.endLine[playerId];
-    const xRange = endLine.ed.x - endLine.st.x;
-    const yRange = endLine.ed.y - endLine.st.y;
-    const gx = xRange === 0 ? 0 : xRange / Math.abs(xRange);
-    const gy = yRange === 0 ? 0 : yRange / Math.abs(yRange);
-    let ret = [];
-    for (let x = endLine.st.x, y = endLine.st.y; !(x === endLine.ed.x && y === endLine.ed.y); x += gx, y += gy) {
-      ret.push({ x, y });
-    }
+    let ret = lineToBlocks(endLine);
     return ret;
   }
 
@@ -195,13 +276,21 @@ class GameControl {
 
     if (action.type === 'WALL') {
       const { st, ed } = action;
-      const walls = this.data.state.walls;
-      walls.push({
+      const { walls, players } = this.data.state;
+      const newWall = {
         round: this.data.state.round,
         player,
         st, ed
-      });
-      actionDone = true;
+      };
+      const { width, height } = this.data.rule.map;
+      const endLines = this.data.rule.endLine;
+      if (judgeNewWallCanBePut(newWall, width, height, players, endLines, walls)) {
+        walls.push(newWall);
+        actionDone = true;
+      } else {
+        console.log("判断墙不能放！");
+        actionDone = false;
+      }
     }
 
     if (actionDone) {
@@ -212,6 +301,7 @@ class GameControl {
         this.data.state.winner = winner;
       }
     }
+    return actionDone;
   }
 }
 
