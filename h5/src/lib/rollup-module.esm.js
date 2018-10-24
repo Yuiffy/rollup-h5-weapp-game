@@ -67,6 +67,7 @@ const createInitData = () => {
   };
   return initData;
 };
+
 // {st:{x,y}, ed:{x,y}} to [{x1,y1}, {x2,y2}, ...] ，支持水平线和垂直线。
 function lineToBlocks(endLine) {
   const xRange = endLine.ed.x - endLine.st.x;
@@ -80,30 +81,34 @@ function lineToBlocks(endLine) {
   return ret;
 }
 
+//判断直线AB是否与线段CD相交
+function lineIntersectSide(A, B, C, D) {
+  // A(x1, y1), B(x2, y2)的直线方程为：
+  // f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0
+  const fC = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
+  const fD = (D.y - A.y) * (A.x - B.x) - (D.x - A.x) * (A.y - B.y);
+  return fC * fD <= 0;
+}
+
+//判断线段AB与线段CD是否相交
+function sideIntersectSide(A, B, C, D) {
+  if (!lineIntersectSide(A, B, C, D)) return false;
+  return lineIntersectSide(C, D, A, B);
+}
+
 const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []) => {
   const ret = [];
   if (stepCount === 0) return ret;
   const go = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
 
   function wallsBlock(preX, preY, x, y, walls) {
-    //判断直线AB是否与线段CD相交
-    function lineIntersectSide(A, B, C, D) {
-      // A(x1, y1), B(x2, y2)的直线方程为：
-      // f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0
-      const fC = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
-      const fD = (D.y - A.y) * (A.x - B.x) - (D.x - A.x) * (A.y - B.y);
-      return fC * fD <= 0;
-    }
-
-    function sideIntersectSide(A, B, C, D) {
-      if (!lineIntersectSide(A, B, C, D)) return false;
-      return lineIntersectSide(C, D, A, B);
-    }
-
     let blockWalls = [];
     walls.forEach(wall => {
       const { st, ed } = wall;
-      if (sideIntersectSide({ x: preX + 0.5, y: preY + 0.5 }, { x: x + 0.5, y: y + 0.5 }, st, ed)) blockWalls.push(wall);
+      if (sideIntersectSide({ x: preX + 0.5, y: preY + 0.5 }, {
+        x: x + 0.5,
+        y: y + 0.5
+      }, st, ed)) blockWalls.push(wall);
     });
     return blockWalls.length > 0 ? blockWalls : false;
   }
@@ -116,15 +121,19 @@ const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []
     xy2key(x, y) {
       return `${x},${y}`;
     }
+
     add(x, y) {
       this.visitMap[this.xy2key(x, y)] = { x, y };
     }
+
     check(x, y) {
       return this.visitMap.hasOwnProperty(this.xy2key(x, y));
     }
+
     del(x, y) {
       delete this.visitMap[this.xy2key(x, y)];
     }
+
     toList() {
       const ret = [];
       Object.keys(this.visitMap).forEach(k => {
@@ -181,6 +190,7 @@ const IfDuplicateBetweenBlockLists = blockLists => {
 * 判断新墙能不能放，如果放下去会导致有人到不了终点就不能放。和以前的线有交叉也不能放。
 * */
 const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) => {
+  //判断一个玩家能否到达它的终点
   const ifOneCanArriveEndLine = (width, height, player, endLine, walls) => {
     const { x, y } = player;
     const arrBlocks = getAccessableBlockList(x, y, width, height, width * height, walls);
@@ -194,7 +204,37 @@ const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) 
     const endLine = endLines[i];
     if (!ifOneCanArriveEndLine(width, height, player, endLine, newWalls)) return false;
   }
-  //TODO: 判断线是否交叉，如果交叉了返回false
+
+  //将线段变短一点点防止端点相交
+  const shorterTheLine = (st, ed) => {
+    const xRange = ed.x - st.x;
+    const yRange = ed.y - st.y;
+    const gx = xRange === 0 ? 0 : xRange / Math.abs(xRange);
+    const gy = yRange === 0 ? 0 : yRange / Math.abs(yRange);
+    const littleX = gx * 0.1;
+    const littleY = gy * 0.1;
+    const newLine = {
+      st: { x: st.x + littleX, y: st.y + littleY },
+      ed: { x: ed.x - littleX, y: ed.y - littleY }
+    };
+    return newLine;
+  };
+
+  //判断线是否交叉
+  const ifNewWallCrossWalls = (newWall, walls) => {
+    const littleNew = shorterTheLine(newWall.st, newWall.ed);
+    for (let i in walls) {
+      const oldWall = walls[i];
+      const littleOld = shorterTheLine(oldWall.st, oldWall.ed);
+      if (sideIntersectSide(littleOld.st, littleOld.ed, littleNew.st, littleNew.ed)) {
+        console.log("线相交了！", littleNew, littleOld);
+        //TODO:修复同一直线上的两条线段被判定为相交的问题
+        return true;
+      }
+    }
+    return false;
+  };
+  if (ifNewWallCrossWalls(newWall, walls)) return false;
   return true;
 };
 

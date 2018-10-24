@@ -82,7 +82,10 @@ class PlayControl extends Component {
       this.setState({pointClick: [...this.state.pointClick, {x, y}]});
     } else {
       console.log(this.state.pointClick, x, y);
-      if (this.state.pointClick[0].x === x && this.state.pointClick[0].y === y) return;
+      if (this.state.pointClick[0].x === x && this.state.pointClick[0].y === y) {
+        this.setState({pointClick: []});
+        return;
+      }
       this.doAction({
         type: 'WALL',
         st: this.state.pointClick[0], ed: {x, y}
