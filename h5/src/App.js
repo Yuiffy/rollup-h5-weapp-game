@@ -11,8 +11,8 @@ const mainControl = ({ match }) => (<MainControl
 />);
 const menuPage = () => (<div className="menuPage">
   <div><Link to="/local">本地双人</Link></div>
-  <div><Link to="/online/123/0">在线双人-南位</Link></div>
-  <div><Link to="/online/123/1">在线双人-北位</Link></div>
+  {/*<div><Link to="/online/123/0">在线双人-南位</Link></div>*/}
+  {/*<div><Link to="/online/123/1">在线双人-北位</Link></div>*/}
   {/* <div><Link to="/">主菜单</Link></div> */}
                         </div>);
 
