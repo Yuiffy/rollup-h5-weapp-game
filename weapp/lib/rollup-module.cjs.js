@@ -2,8 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var crosses = require("robust-segment-intersect");
-// import crosses from 'robust-segment-intersect';
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var crosses = _interopDefault(require('robust-segment-intersect'));
 
 const createInitData = () => {
   const initData = {
@@ -88,19 +89,29 @@ function lineToBlocks(endLine) {
   return ret;
 }
 
-//判断直线AB是否与线段CD相交
-function lineIntersectSide(A, B, C, D) {
-  // A(x1, y1), B(x2, y2)的直线方程为：
-  // f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0
-  const fC = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
-  const fD = (D.y - A.y) * (A.x - B.x) - (D.x - A.x) * (A.y - B.y);
-  return fC * fD <= 0;
-}
+// //判断直线AB是否与线段CD相交
+// function lineIntersectSide(A, B, C, D) {
+//   // A(x1, y1), B(x2, y2)的直线方程为：
+//   // f(x, y) =  (y - y1) * (x1 - x2) - (x - x1) * (y1 - y2) = 0
+//   const fC = (C.y - A.y) * (A.x - B.x) - (C.x - A.x) * (A.y - B.y);
+//   const fD = (D.y - A.y) * (A.x - B.x) - (D.x - A.x) * (A.y - B.y);
+//   return fC * fD <= 0;
+// }
+//
+// //判断线段AB与线段CD是否相交（该方法无法判断同一直线上的两条线段！）
+// function sideIntersectSide(A, B, C, D) {
+//   if (!lineIntersectSide(A, B, C, D))
+//     return false;
+//   return lineIntersectSide(C, D, A, B);
+// }
 
-//判断线段AB与线段CD是否相交
+//判断线段AB与线段CD是否相交，用库
 function sideIntersectSide(A, B, C, D) {
-  if (!lineIntersectSide(A, B, C, D)) return false;
-  return lineIntersectSide(C, D, A, B);
+  const p2a = point => {
+    return [point.x, point.y];
+  };
+  const cross = crosses(p2a(A), p2a(B), p2a(C), p2a(D));
+  return cross;
 }
 
 const getAccessableBlockList = (preX, preY, width, height, stepCount, walls = []) => {
@@ -196,7 +207,7 @@ const IfDuplicateBetweenBlockLists = blockLists => {
 * endLine: [{st:{x,y}, ed:{x,y}}, ... ]
 * 判断新墙能不能放，如果放下去会导致有人到不了终点就不能放。和以前的线有交叉也不能放。
 * */
-const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) => {
+const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls, errors = []) => {
   //判断一个玩家能否到达它的终点
   const ifOneCanArriveEndLine = (width, height, player, endLine, walls) => {
     const { x, y } = player;
@@ -209,7 +220,13 @@ const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) 
   for (let i in players) {
     const player = players[i];
     const endLine = endLines[i];
-    if (!ifOneCanArriveEndLine(width, height, player, endLine, newWalls)) return false;
+    if (!ifOneCanArriveEndLine(width, height, player, endLine, newWalls)) {
+      errors.push({
+        name: "PLAYER_CAN_NOT_ARRIVE_END",
+        message: "Can not put! This will make some player can not arrive end line."
+      });
+      return false;
+    }
   }
 
   //将线段变短一点点防止端点相交
@@ -246,7 +263,10 @@ const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) 
     }
     return false;
   };
-  if (ifNewWallCrossWalls(newWall, walls)) return false;
+  if (ifNewWallCrossWalls(newWall, walls)) {
+    errors.push({ name: "WALL_CROSS", message: "Can not put! Walls can not put cross other walls." });
+    return false;
+  }
   return true;
 };
 
@@ -314,6 +334,7 @@ class GameControl {
   doAction(action) {
     const { player = this.data.state.nowPlayer } = action;
     let actionDone = false;
+    let errors = [];
     if (action.type === 'MOVE') {
       const { x, y } = action;
       const thePlayerState = this.data.state.players[player];
@@ -332,12 +353,13 @@ class GameControl {
       };
       const { width, height } = this.data.rule.map;
       const endLines = this.data.rule.endLine;
-      if (judgeNewWallCanBePut(newWall, width, height, players, endLines, walls)) {
+      if (judgeNewWallCanBePut(newWall, width, height, players, endLines, walls, errors)) {
         walls.push(newWall);
         actionDone = true;
       } else {
         console.log("判断墙不能放！");
         actionDone = false;
+        //errors里面已经放有东西了
       }
     }
 
@@ -349,7 +371,7 @@ class GameControl {
         this.data.state.winner = winner;
       }
     }
-    return actionDone;
+    return { code: actionDone ? 0 : 400, errors, success: actionDone };
   }
 }
 
