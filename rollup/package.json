@@ -5,7 +5,8 @@
   "module": "../h5/src/lib/rollup-module.esm.js",
   "browser": "dist/rollup-module.umd.js",
   "dependencies": {
-    "ms": "^2.0.0"
+    "ms": "^2.0.0",
+    "robust-segment-intersect": "^1.0.1"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

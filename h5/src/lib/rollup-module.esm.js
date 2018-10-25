@@ -1,3 +1,6 @@
+var crosses = require("robust-segment-intersect");
+// import crosses from 'robust-segment-intersect';
+
 const createInitData = () => {
   const initData = {
     local: {
@@ -222,11 +225,16 @@ const judgeNewWallCanBePut = (newWall, width, height, players, endLines, walls) 
 
   //判断线是否交叉
   const ifNewWallCrossWalls = (newWall, walls) => {
+    const xy2array = line => {
+      return [[line.st.x, line.st.y], [line.ed.x, line.ed.y]];
+    };
     const littleNew = shorterTheLine(newWall.st, newWall.ed);
     for (let i in walls) {
       const oldWall = walls[i];
       const littleOld = shorterTheLine(oldWall.st, oldWall.ed);
-      if (sideIntersectSide(littleOld.st, littleOld.ed, littleNew.st, littleNew.ed)) {
+      const cross = crosses(...xy2array(littleNew), ...xy2array(littleOld));
+      //sideIntersectSide(littleOld.st, littleOld.ed, littleNew.st, littleNew.ed)
+      if (cross) {
         console.log("线相交了！", littleNew, littleOld);
         //TODO:修复同一直线上的两条线段被判定为相交的问题
         return true;
