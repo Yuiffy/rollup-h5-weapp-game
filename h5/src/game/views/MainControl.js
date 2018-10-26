@@ -131,7 +131,7 @@ class PlayControl extends Component {
       player, roomId,
     } = this.props;
 
-    const { players, actionList, gameOver, display, pointClick } = this.state;
+    const { players, actionList, gameOver, display, pointClick, toast } = this.state;
 
     return (
       <div>
@@ -179,8 +179,8 @@ class PlayControl extends Component {
           </div>
           <div>{player}</div>
         </div>
-        <div className="full-window">
-          123
+        <div className="full-window float-window no-listen-click" style={{zIndex: 20}}>
+          <div className="temp-toast">{toast}</div>
         </div>
       </div>
     );

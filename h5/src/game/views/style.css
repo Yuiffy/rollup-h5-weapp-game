@@ -61,3 +61,22 @@
     border-radius: 0;
     outline: 10px solid red;
 }
+
+.float-window{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.no-listen-click{
+    pointer-events: none;
+}
+
+.temp-toast{
+    color: red;
+    font-size: 200%;
+    max-width: 50vw;
+    background: white;
+    border: solid 1px black;
+    opacity:0.9;
+}
