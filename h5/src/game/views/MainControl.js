@@ -116,9 +116,11 @@ class PlayControl extends Component {
     }
     if (gameOver)
       alert(winner + "赢了！");
+    const actionList = this.game.getActionList();
+    console.log("now actionList = ",actionList);
     this.setState({
       players: this.game.data.state.players,
-      actionList: this.game.getActionList(),
+      actionList: actionList,
       walls,
       gameOver,
       winner,
@@ -128,9 +130,8 @@ class PlayControl extends Component {
 
   render() {
     const {
-      player, roomId,
+      player, roomId, gameMode
     } = this.props;
-
     const { players, actionList, gameOver, display, pointClick, toast } = this.state;
 
     return (
